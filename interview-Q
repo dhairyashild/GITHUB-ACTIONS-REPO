@@ -1,0 +1,50 @@
+give complete set of interview q for git action like above
+
+
+Alright, here's a comprehensive set of GitHub Actions interview questions with concise answers, covering various aspects:
+
+Core Concepts:
+
+What is GitHub Actions? CI/CD automation within GitHub.
+How are workflows defined? YAML files in .github/workflows/.
+What are jobs? Execution units on runners.
+What are steps? Individual commands within a job.
+What are actions? Reusable, pre-packaged tasks.
+What are runners? Machines executing jobs.
+What are artifacts? Build outputs (JARs, logs).
+What are secrets? Encrypted sensitive data.
+What are environment variables? Dynamic data passed between steps.
+Workflow Triggers:
+
+push trigger? Runs on code pushes.
+pull_request trigger? Runs on PR creation/updates.
+schedule trigger? Runs on a cron schedule.
+workflow_dispatch trigger? Manual workflow execution.
+release trigger? Runs on release events.
+Workflow Structure:
+
+How to run jobs in parallel? Omit needs dependencies.
+How to run jobs sequentially? Use needs: [job1, job2].
+What is a matrix strategy? Runs jobs with variable combinations.
+How to use conditions? if:.
+How to access Git commit hash? ${{ github.sha }}.
+How to access branch name? ${{ github.ref_name }}.
+How to pass data between jobs? Artifacts or job outputs.
+How to use custom actions? Create or use published actions.
+What is the use of 'uses:' keyword? Specifies an action.
+How to handle errors? if: always(), if: failure().
+Advanced Topics:
+
+What are self-hosted runners? Runners you manage.
+When would you use self-hosted runners? Specific hardware/software needs.
+How do you cache dependencies? actions/cache action.
+How to deploy using GitHub Actions? Use deployment actions or scripts.
+How to integrate with Docker? Use Docker actions or commands.
+How to use GitHub Packages? Publish/consume packages in workflows.
+How to monitor workflows? GitHub Actions UI, logs, notifications.
+How to debug workflows? Using workflow logs, or enabling debug logging.
+What are workflow outputs? Data returned from jobs.
+What are workflow inputs? Data provided when manually triggering workflows.
+
+
+
