@@ -1,0 +1,134 @@
+
+
+
+name: Java CI/CD with SonarQube, JFrog, Docker, and AWS ECR
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'src/**'
+  pull_request:
+    branches:
+      - main
+  schedule:
+    - cron: '0 12 * * *'
+  workflow_dispatch:                          ### this for manual start of pipeline
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4   ### search setup-java on github actions marketplace and searc code for maven there u get java with cache maven which add maven also
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+          cache: 'maven'
+
+      - name: Maven Clean Install
+        run: mvn clean install -DskipTests=true   #### install used  instead of maven as it creates artefacts in .M2 folder which path used in artefact uploading in jfrog
+                                                  #### -DskipTests=true tells Maven to bypass the execution of any unit or integration tests 
+      - name: Maven Test
+        run: mvn test
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      - name: SonarQube Scan
+        uses: sonarsource/sonarcloud-github-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          args: >-
+            -Dsonar.organization=your-sonarcloud-org
+            -Dsonar.projectKey=your-sonarcloud-project-key
+
+      - name: Maven Package
+        run: mvn package
+
+      - name: Publish to JFrog Artifactory
+        run: |
+          mvn deploy -DaltDeploymentRepository=jfrog-repo::default::${{ secrets.JFROG_URL }}/artifactory/libs-release-local \
+          -DrepositoryId=jfrog-repo \
+          -DrepositoryUrl=${{ secrets.JFROG_URL }}/artifactory/libs-release-local \
+          -DserverId=jfrog-repo \
+          -s settings.xml
+        env:
+          JFROG_USERNAME: ${{ secrets.JFROG_USERNAME }}
+          JFROG_PASSWORD: ${{ secrets.JFROG_PASSWORD }}
+
+      - name: Build Docker image
+        run: |
+          docker build -t your-app-image:${{ github.sha }} .
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: your-aws-region
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Tag and push Docker image to ECR
+        run: |
+          docker tag your-app-image:${{ github.sha }} ${{ steps.login-ecr.outputs.registry }}/your-ecr-repo:latest
+          docker push ${{ steps.login-ecr.outputs.registry }}/your-ecr-repo:latest
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: your-aws-region
+
+      - name: Deploy to AWS (e.g., ECS, EKS)
+        run: |
+          echo "Simulating deployment to AWS..."
+          # Add your AWS deployment commands here.
+          # Example for ECS: aws ecs update-service --cluster your-cluster --service your-service --force-new-deployment
+          # Example for EKS: kubectl apply -f deployment.yaml
+
+  notify:
+    needs: deploy
+    runs-on: ubuntu-latest
+    if: always()
+
+    steps:
+      - name: Send Slack notification
+        uses: slackapi/slack-github-action@v1
+        with:
+          slack-bot-user-oauth-access-token: ${{ secrets.SLACK_BOT_TOKEN }}
+          slack-channel: '#devops-notifications'
+          slack-text: |
+            Workflow "${{ github.workflow }}" completed for ${{ github.repository }} on branch ${{ github.ref_name }}.
+            Result: ${{ job.status }}.
+            Link to workflow: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
