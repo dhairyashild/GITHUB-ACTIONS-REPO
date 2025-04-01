@@ -1,7 +1,7 @@
 ### github marketplace actions needed
 #   1) Checkout
 #   2) Setup Java JDK New ---  this add java & maven
-#   3) Official SonarQube Scan ---- secrets to add 1st  (SONAR_TOKEN  , SONAR_HOST_URL:9000  )
+#   3) Official SonarQube Scan ---- secrets to add 1st  (SONAR_TOKEN  , SONAR_HOST_URL:9000  )                                                             ---devops coach link==https://youtu.be/AYl3A3ac7bg?si=lzDFIaX0Fh2RhUkn
 
 name: Java CI/CD with SonarQube, JFrog, Docker, and AWS ECR
 
